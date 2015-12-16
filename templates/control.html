@@ -1,0 +1,59 @@
+{% extends "index.html" %}
+{% block body %}
+<form onsubmit="return false">
+<select name="casts" id="casts"></select>
+<button id="volup" name="volup" value="+">
+<button id="voldown" name="voldown" value="-">
+</form>
+<div id="message"></div>
+<script>
+var msgtimeout;
+function setMessage(message, timeout) {
+  clearTimeout(msgtimeout);
+  $("#message").html(message);
+  msgtimeout = setTimeout(function() {
+    $("#message").html("");
+  }, timeout);
+}
+function percent(decimals) {
+  return (decimals * 100).toFixed(2) + "%";
+}
+$(document).ready(function() {
+  // populate chromecast select
+  $.getJSON("casts", function(result){
+    $.each(result, function(i, field){
+      $("#casts").append($("<option>").text(field).attr("value", value));
+    });
+    setMessage("Loaded " + result.length + " casts", 5000);
+  });
+});
+$("volup").click(function(){
+  $.ajax({
+           url: "volup",
+           data: "cast=" + $("#casts").val(),
+           dataType: "json",
+           type: "POST",
+           success: function(json) {
+             setMessage("Volume up (now at " + percent(json.vol) + ")")
+           },
+           error: function(json) {
+             setMessage("Error setting volume, sorry");
+           }
+         });
+});
+$("voldown").click(function(){
+  $.ajax({
+           url: "voldown",
+           data: "cast=" + $("#casts").val(),
+           dataType: "json",
+           type: "POST",
+           success: function(json) {
+             setMessage("Volume down (now at " + percent(json.vol) + ")")
+           },
+           error: function(json) {
+             setMessage("Error setting volume, sorry");
+           }
+         });
+});
+</script>
+{% endblock %}
